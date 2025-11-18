@@ -9,13 +9,15 @@ if ($mysql_url) {
     // Parsear la URL de conexión MySQL
     $url_parts = parse_url($mysql_url);
     if ($url_parts && isset($url_parts['host'])) {
-        define('DB_HOST', $url_parts['host'] . (isset($url_parts['port']) ? ':' . $url_parts['port'] : ''));
+        define('DB_HOST', $url_parts['host']);
+        define('DB_PORT', isset($url_parts['port']) ? $url_parts['port'] : 3306);
         define('DB_USER', isset($url_parts['user']) ? $url_parts['user'] : 'root');
         define('DB_PASS', isset($url_parts['pass']) ? $url_parts['pass'] : '');
         define('DB_NAME', isset($url_parts['path']) ? ltrim($url_parts['path'], '/') : 'autolote');
     } else {
         // Si el parseo falla, usar valores por defecto
         define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+        define('DB_PORT', getenv('DB_PORT') ?: 3306);
         define('DB_USER', getenv('DB_USER') ?: 'root');
         define('DB_PASS', getenv('DB_PASS') ?: '');
         define('DB_NAME', getenv('DB_NAME') ?: 'autolote');
@@ -23,6 +25,7 @@ if ($mysql_url) {
 } else {
     // Usar variables de entorno individuales o valores por defecto
     define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_PORT', getenv('DB_PORT') ?: 3306);
     define('DB_USER', getenv('DB_USER') ?: 'root');
     define('DB_PASS', getenv('DB_PASS') ?: '');
     define('DB_NAME', getenv('DB_NAME') ?: 'autolote');
@@ -31,8 +34,15 @@ if ($mysql_url) {
 // Conexión a la base de datos
 function getDBConnection() {
     try {
+        // Construir DSN con puerto si es diferente al default
+        $dsn = "mysql:host=" . DB_HOST;
+        if (defined('DB_PORT') && DB_PORT != 3306) {
+            $dsn .= ";port=" . DB_PORT;
+        }
+        $dsn .= ";dbname=" . DB_NAME . ";charset=utf8mb4";
+        
         $conn = new PDO(
-            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+            $dsn,
             DB_USER,
             DB_PASS,
             [
