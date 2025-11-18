@@ -1,0 +1,31 @@
+# Archivos y carpetas a ignorar en Docker
+.git
+.gitignore
+.vscode
+.idea
+*.md
+node_modules
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos de desarrollo
+test_connection.php
+verificar_bd.php
+start.php
+seed_vehicles.php
+seed_result.php
+iniciar_servicios.bat
+
+# Documentación
+*.md
+!README.md
+
+# Archivos temporales
+*.tmp
+*.temp
+sessions/
+
