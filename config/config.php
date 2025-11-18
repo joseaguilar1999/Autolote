@@ -3,7 +3,20 @@
 session_start();
 
 // Configuración de rutas
-define('BASE_URL', 'http://localhost/Autolote');
+// Detectar automáticamente la URL base (funciona en desarrollo y producción)
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+// Detectar si estamos en desarrollo local (localhost) o en producción
+if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false) {
+    // Desarrollo local
+    $base_url = $protocol . '://' . $host . '/Autolote';
+} else {
+    // Producción (Render, etc.)
+    $base_url = $protocol . '://' . $host;
+}
+
+define('BASE_URL', $base_url);
 define('BASE_PATH', __DIR__ . '/..');
 
 // Configuración de uploads
