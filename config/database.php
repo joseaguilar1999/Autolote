@@ -1,9 +1,11 @@
 <?php
 // Configuración de la base de datos
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'autolote');
+// Soporta variables de entorno para producción (Render, etc.)
+// Si no están definidas, usa valores por defecto para desarrollo local
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: 'autolote');
 
 // Conexión a la base de datos
 function getDBConnection() {

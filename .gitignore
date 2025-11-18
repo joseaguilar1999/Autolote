@@ -1,5 +1,7 @@
 # Archivos de configuración local
 config/database.local.php
+# Nota: config/database.php puede contener credenciales de producción
+# Asegúrate de no subir credenciales reales a GitHub
 
 # Directorio de uploads (excepto .htaccess)
 uploads/vehiculos/*
