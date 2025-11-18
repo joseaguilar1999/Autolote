@@ -17,6 +17,8 @@ if (!file_exists(UPLOAD_DIR)) {
 
 // Incluir conexión a base de datos
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/pagination.php';
+require_once __DIR__ . '/security.php';
 
 // Funciones de utilidad
 function isLoggedIn() {

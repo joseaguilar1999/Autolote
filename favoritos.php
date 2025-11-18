@@ -3,113 +3,131 @@ require_once 'config/config.php';
 requireLogin();
 
 $conn = getDBConnection();
-$stmt = $conn->prepare("SELECT v.*, 
-        (SELECT imagen_path FROM vehiculos_imagenes WHERE vehiculo_id = v.id AND es_principal = 1 LIMIT 1) as imagen_principal
-        FROM vehiculos v
-        INNER JOIN favoritos f ON v.id = f.vehiculo_id
+
+// Obtener favoritos del usuario con información de vehículos
+$stmt = $conn->prepare("SELECT f.id as favorito_id, f.fecha_creacion as favorito_fecha,
+        v.*, 
+        (SELECT imagen_path FROM vehiculos_imagenes WHERE vehiculo_id = v.id AND es_principal = 1 LIMIT 1) as imagen_principal,
+        (SELECT GROUP_CONCAT(imagen_path) FROM vehiculos_imagenes WHERE vehiculo_id = v.id) as imagenes
+        FROM favoritos f
+        INNER JOIN vehiculos v ON f.vehiculo_id = v.id
         WHERE f.usuario_id = ? AND v.estado = 'disponible'
         ORDER BY f.fecha_creacion DESC");
 $stmt->execute([$_SESSION['user_id']]);
 $vehiculos = $stmt->fetchAll();
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Favoritos - Autolote</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<?php
+$page_title = 'Mis Favoritos';
+include 'includes/head.php';
+?>
     <style>
-        .vehiculo-card {
-            transition: transform 0.3s;
+        body {
+            background-color: #f8fafc;
         }
-        .vehiculo-card:hover {
-            transform: translateY(-5px);
+        
+        .favorite-card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            height: 100%;
         }
-        .vehiculo-img {
-            height: 200px;
+        
+        .favorite-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .vehicle-image-container {
+            aspect-ratio: 16/9;
+            background-color: #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vehicle-image {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #f1f5f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <i class="bi bi-car-front"></i> Autolote
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="comparador.php">Comparar Vehículos</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="favoritos.php">
-                            <i class="bi bi-heart-fill"></i> Favoritos
-                        </a>
-                    </li>
-                    <?php if (isAdmin()): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="admin/index.php">Panel Admin</a>
-                        </li>
-                    <?php endif; ?>
-                    <li class="nav-item">
-                        <span class="nav-link"><?= htmlspecialchars($_SESSION['user_nombre']) ?></span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="logout.php">Salir</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <?php include 'includes/navbar.php'; ?>
 
-    <div class="container my-5">
-        <h2 class="mb-4">Mis Favoritos</h2>
-        
+    <div class="container py-5">
+        <h1 class="display-5 fw-bold text-dark mb-5">Mis Favoritos</h1>
+
         <?php if (empty($vehiculos)): ?>
-            <div class="alert alert-info">
-                <h4>No tienes vehículos favoritos</h4>
-                <p>Agrega vehículos a tus favoritos desde el catálogo o desde la página de detalle de cada vehículo.</p>
-                <a href="index.php" class="btn btn-primary">Ir al Catálogo</a>
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-heart" style="font-size: 2.5rem; color: #94a3b8;"></i>
+                </div>
+                <p class="fs-5 text-muted mb-4">No tienes vehículos favoritos aún</p>
+                <a href="index.php?catalogo=1" class="btn btn-primary">
+                    Explorar Catálogo
+                </a>
             </div>
         <?php else: ?>
-            <div class="row">
+            <div class="row g-4">
                 <?php foreach ($vehiculos as $vehiculo): ?>
-                    <div class="col-md-4 mb-4">
-                        <div class="card vehiculo-card h-100 shadow-sm">
-                            <?php if ($vehiculo['imagen_principal']): ?>
-                                <img src="<?= UPLOAD_URL . htmlspecialchars($vehiculo['imagen_principal']) ?>" 
-                                     class="card-img-top vehiculo-img" alt="<?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?>">
-                            <?php else: ?>
-                                <div class="card-img-top vehiculo-img bg-secondary d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-image fs-1 text-white"></i>
+                    <?php 
+                    $imagenes = [];
+                    if ($vehiculo['imagenes']) {
+                        $imagenes = explode(',', $vehiculo['imagenes']);
+                    } elseif ($vehiculo['imagen_principal']) {
+                        $imagenes = [$vehiculo['imagen_principal']];
+                    }
+                    ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card favorite-card h-100">
+                            <a href="detalle.php?id=<?= $vehiculo['id'] ?>" class="text-decoration-none">
+                                <div class="vehicle-image-container">
+                                    <?php if (!empty($imagenes)): ?>
+                                        <img src="<?= UPLOAD_URL . htmlspecialchars(trim($imagenes[0])) ?>" 
+                                             class="vehicle-image" 
+                                             alt="<?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?>">
+                                    <?php else: ?>
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <i class="bi bi-car-front" style="font-size: 4rem; color: #94a3b8;"></i>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endif; ?>
-                            <div class="card-body">
-                                <h5 class="card-title"><?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?></h5>
-                                <p class="card-text">
-                                    <strong>Año:</strong> <?= htmlspecialchars($vehiculo['año']) ?><br>
-                                    <strong>Precio:</strong> <?= formatPrice($vehiculo['precio']) ?><br>
-                                    <strong>Kilometraje:</strong> <?= formatKilometraje($vehiculo['kilometraje']) ?><br>
-                                    <strong>Color:</strong> <?= htmlspecialchars($vehiculo['color']) ?><br>
-                                    <strong>Transmisión:</strong> <?= ucfirst($vehiculo['transmision']) ?>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <a href="detalle.php?id=<?= $vehiculo['id'] ?>" class="btn btn-primary w-100 mb-2">Ver Detalles</a>
-                                <button class="btn btn-outline-danger w-100" onclick="toggleFavorito(<?= $vehiculo['id'] ?>)">
-                                    <i class="bi bi-heart-fill"></i> Quitar de Favoritos
+                            </a>
+                            
+                            <div class="card-body p-4">
+                                <a href="detalle.php?id=<?= $vehiculo['id'] ?>" class="text-decoration-none">
+                                    <h3 class="h5 fw-bold text-dark mb-2">
+                                        <?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?>
+                                    </h3>
+                                    <p class="text-muted small mb-3">
+                                        <?= htmlspecialchars($vehiculo['año']) ?> • <?= formatKilometraje($vehiculo['kilometraje']) ?>
+                                    </p>
+                                    <p class="h4 fw-bold text-primary mb-4">
+                                        <?= formatPrice($vehiculo['precio']) ?>
+                                    </p>
+                                </a>
+                                
+                                <button class="btn btn-danger w-100" 
+                                        onclick="removeFavorite(<?= $vehiculo['favorito_id'] ?>, <?= $vehiculo['id'] ?>)"
+                                        data-favorite-id="<?= $vehiculo['favorito_id'] ?>">
+                                    <i class="bi bi-trash me-2"></i> Eliminar de Favoritos
                                 </button>
                             </div>
                         </div>
@@ -119,24 +137,52 @@ $vehiculos = $stmt->fetchAll();
         <?php endif; ?>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function toggleFavorito(vehiculoId) {
-            fetch('api/favoritos.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({vehiculo_id: vehiculoId})
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message || 'Error al actualizar favoritos');
+        function removeFavorite(favoriteId, vehicleId) {
+            if (!confirm('¿Estás seguro de eliminar este vehículo de tus favoritos?')) {
+                return;
+            }
+            
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+            
+            fetch('api/favoritos.php?id=' + favoriteId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
+            })
+            .then(r => {
+                if (!r.ok) {
+                    return r.json().then(data => Promise.reject(data));
+                }
+                return r.json();
+            })
+            .then(data => {
+                // Remover el card del DOM con animación
+                const card = btn.closest('.col-md-6');
+                card.style.transition = 'opacity 0.3s, transform 0.3s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                
+                setTimeout(() => {
+                    card.remove();
+                    
+                    // Si no quedan favoritos, recargar página para mostrar estado vacío
+                    const remainingCards = document.querySelectorAll('.favorite-card');
+                    if (remainingCards.length === 0) {
+                        location.reload();
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.error || 'Error al eliminar favorito');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             });
         }
     </script>
-</body>
-</html>
-
+<?php include 'includes/footer.php'; ?>

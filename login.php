@@ -33,55 +33,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Autolote</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<?php
+$page_title = 'Iniciar Sesión';
+include 'includes/head.php';
+?>
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #f8fafc 0%, #e0f2fe 50%, #f8fafc 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 28rem;
+        }
+        
+        .login-card {
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .icon-container {
+            width: 64px;
+            height: 64px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .form-control {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-5">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-car-front fs-1 text-primary"></i>
-                            <h2 class="mt-3">Autolote</h2>
-                            <p class="text-muted">Iniciar Sesión</p>
-                        </div>
-                        
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-                        <?php endif; ?>
-                        
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" name="password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar Sesión</button>
-                        </form>
-                        
-                        <div class="text-center">
-                            <a href="registro.php" class="text-decoration-none">¿No tienes cuenta? Regístrate</a>
-                        </div>
-                        <div class="text-center mt-2">
-                            <a href="index.php" class="text-decoration-none">Volver al inicio</a>
-                        </div>
+<body>
+    <div class="login-container px-4">
+        <div class="card login-card">
+            <div class="card-header text-center py-4 border-0">
+                <div class="icon-container">
+                    <i class="bi bi-car-front text-white" style="font-size: 2rem;"></i>
+                </div>
+                <h1 class="h3 fw-bold text-dark mb-0">Iniciar Sesión</h1>
+            </div>
+            <div class="card-body p-5">
+                <?php if ($error): ?>
+                    <div class="alert-error">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form method="POST" id="loginForm">
+                    <div class="mb-4">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email" 
+                               name="email" 
+                               placeholder="tu@email.com" 
+                               required
+                               autocomplete="email">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="password" 
+                               name="password" 
+                               placeholder="••••••••" 
+                               required
+                               autocomplete="current-password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-login" id="submitBtn">
+                        Iniciar Sesión
+                    </button>
+                </form>
+                
+                <div class="mt-5 text-center">
+                    <p class="text-muted mb-0">
+                        ¿No tienes cuenta?{' '}
+                        <a href="registro.php" class="text-primary fw-semibold text-decoration-none">
+                            Regístrate
+                        </a>
+                    </p>
+                    <div class="mt-3">
+                        <a href="index.php" class="text-muted text-decoration-none small">
+                            <i class="bi bi-arrow-left me-1"></i> Volver al inicio
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Iniciando sesión...';
+        });
+    </script>
+<?php include 'includes/footer.php'; ?>

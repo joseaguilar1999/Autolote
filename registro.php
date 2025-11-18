@@ -9,9 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $telefono = $_POST['telefono'] ?? '';
     $password = $_POST['password'] ?? '';
-    $password_confirm = $_POST['password_confirm'] ?? '';
     
-    if ($nombre && $email && $password && $password === $password_confirm) {
+    if ($nombre && $email && $password) {
         $conn = getDBConnection();
         
         // Verificar si el email ya existe
@@ -25,80 +24,196 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($stmt->execute([$nombre, $email, $telefono, $hashed_password])) {
                 $success = 'Registro exitoso. Ahora puedes iniciar sesión.';
+                // Limpiar formulario después de éxito
+                $nombre = $email = $telefono = '';
             } else {
                 $error = 'Error al registrar usuario';
             }
         }
     } else {
-        $error = 'Por favor completa todos los campos correctamente';
+        $error = 'Por favor completa todos los campos requeridos';
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Autolote</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<?php
+$page_title = 'Registro';
+include 'includes/head.php';
+?>
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #f8fafc 0%, #e0f2fe 50%, #f8fafc 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .register-container {
+            width: 100%;
+            max-width: 32rem;
+        }
+        
+        .register-card {
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .icon-container {
+            width: 64px;
+            height: 64px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .form-control {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        
+        .btn-register {
+            width: 100%;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-person-plus fs-1 text-primary"></i>
-                            <h2 class="mt-3">Crear Cuenta</h2>
-                            <p class="text-muted">Regístrate para guardar favoritos</p>
-                        </div>
-                        
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-                        <?php endif; ?>
-                        
-                        <?php if ($success): ?>
-                            <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-                        <?php endif; ?>
-                        
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Nombre Completo</label>
-                                <input type="text" class="form-control" name="nombre" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Teléfono</label>
-                                <input type="tel" class="form-control" name="telefono">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Confirmar Contraseña</label>
-                                <input type="password" class="form-control" name="password_confirm" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 mb-3">Registrarse</button>
-                        </form>
-                        
-                        <div class="text-center">
-                            <a href="login.php" class="text-decoration-none">¿Ya tienes cuenta? Inicia sesión</a>
-                        </div>
-                        <div class="text-center mt-2">
-                            <a href="index.php" class="text-decoration-none">Volver al inicio</a>
-                        </div>
+<body>
+    <div class="register-container px-4 py-5">
+        <div class="card register-card">
+            <div class="card-header text-center py-4 border-0">
+                <div class="icon-container">
+                    <i class="bi bi-car-front text-white" style="font-size: 2rem;"></i>
+                </div>
+                <h1 class="h3 fw-bold text-dark mb-0">Registro</h1>
+            </div>
+            <div class="card-body p-5">
+                <?php if ($error): ?>
+                    <div class="alert-error">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($success): ?>
+                    <div class="alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <?= htmlspecialchars($success) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form method="POST" id="registerForm">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre Completo</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="nombre" 
+                               name="nombre" 
+                               placeholder="Juan Pérez" 
+                               value="<?= htmlspecialchars($nombre ?? '') ?>"
+                               required
+                               autocomplete="name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email" 
+                               name="email" 
+                               placeholder="tu@email.com" 
+                               value="<?= htmlspecialchars($email ?? '') ?>"
+                               required
+                               autocomplete="email">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Teléfono <span class="text-muted">(opcional)</span></label>
+                        <input type="tel" 
+                               class="form-control" 
+                               id="telefono" 
+                               name="telefono" 
+                               placeholder="1234567890" 
+                               value="<?= htmlspecialchars($telefono ?? '') ?>"
+                               autocomplete="tel">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="password" 
+                               name="password" 
+                               placeholder="••••••••" 
+                               required
+                               autocomplete="new-password"
+                               minlength="6">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-register" id="submitBtn">
+                        Registrarse
+                    </button>
+                </form>
+                
+                <div class="mt-5 text-center">
+                    <p class="text-muted mb-0">
+                        ¿Ya tienes cuenta?{' '}
+                        <a href="login.php" class="text-primary fw-semibold text-decoration-none">
+                            Inicia sesión
+                        </a>
+                    </p>
+                    <div class="mt-3">
+                        <a href="index.php" class="text-muted text-decoration-none small">
+                            <i class="bi bi-arrow-left me-1"></i> Volver al inicio
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+        });
+    </script>
+<?php include 'includes/footer.php'; ?>

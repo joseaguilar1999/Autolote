@@ -1,6 +1,11 @@
 # Configuración básica
 RewriteEngine On
 
+# API Routes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
 # Redirigir a index.php si el archivo no existe
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -10,4 +15,3 @@ RewriteCond %{REQUEST_FILENAME} !-d
     Order Allow,Deny
     Deny from all
 </FilesMatch>
-

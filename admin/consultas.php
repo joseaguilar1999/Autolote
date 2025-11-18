@@ -5,179 +5,465 @@ requireAdmin();
 $conn = getDBConnection();
 
 // Manejar cambio de estado
-if (isset($_GET['cambiar_estado'])) {
-    $id = $_GET['cambiar_estado'];
-    $estado = $_GET['estado'] ?? 'leida';
-    $stmt = $conn->prepare("UPDATE consultas SET estado = ? WHERE id = ?");
-    $stmt->execute([$estado, $id]);
-    header('Location: consultas.php?success=actualizado');
+if (isset($_POST['cambiar_estado'])) {
+    $id = intval($_POST['id'] ?? 0);
+    $nuevo_estado = $_POST['estado'] ?? '';
+    
+    if ($id > 0) {
+        $valid_statuses = ['nueva', 'leida', 'respondida'];
+        if (in_array($nuevo_estado, $valid_statuses)) {
+            // Verificar que existe antes de actualizar
+            $checkStmt = $conn->prepare("SELECT id FROM consultas WHERE id = ?");
+            $checkStmt->execute([$id]);
+            if ($checkStmt->fetch()) {
+                $stmt = $conn->prepare("UPDATE consultas SET estado = ? WHERE id = ?");
+                $stmt->execute([$nuevo_estado, $id]);
+                header('Location: consultas.php?success=actualizado');
+                exit;
+            }
+        }
+    }
+    header('Location: consultas.php?error=no_encontrado');
     exit;
 }
 
-// Manejar eliminación
-if (isset($_GET['eliminar'])) {
-    $id = $_GET['eliminar'];
-    $stmt = $conn->prepare("DELETE FROM consultas WHERE id = ?");
-    $stmt->execute([$id]);
-    header('Location: consultas.php?success=eliminado');
-    exit;
-}
+// Configuración de paginación
+$items_per_page = 15;
+$current_page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 
-// Obtener consultas
-$stmt = $conn->query("SELECT c.*, v.marca, v.modelo 
+// Contar total de consultas
+$countStmt = $conn->query("SELECT COUNT(*) as total FROM consultas");
+$total_items = $countStmt->fetch()['total'];
+
+// Calcular información de paginación
+$pagination_info = getPaginationInfo($total_items, $items_per_page, $current_page);
+
+// Obtener consultas con información de vehículos (paginadas)
+$stmt = $conn->prepare("SELECT c.*, v.marca, v.modelo, v.id as vehiculo_id
     FROM consultas c 
     LEFT JOIN vehiculos v ON c.vehiculo_id = v.id 
-    ORDER BY c.fecha_creacion DESC");
+    ORDER BY 
+        CASE c.estado 
+            WHEN 'nueva' THEN 1 
+            WHEN 'leida' THEN 2 
+            WHEN 'respondida' THEN 3 
+        END,
+        c.fecha_creacion DESC
+    LIMIT ? OFFSET ?");
+$stmt->execute([$items_per_page, $pagination_info['offset']]);
 $consultas = $stmt->fetchAll();
+
+// Construir URL base para paginación (sin parámetro page)
+$base_url = 'consultas.php';
+$query_params = [];
+// Mantener otros parámetros GET si existen (excepto 'page')
+foreach ($_GET as $key => $value) {
+    if ($key !== 'page') {
+        $query_params[$key] = $value;
+    }
+}
+$pagination_url = $base_url;
+
+// Obtener estadísticas para el sidebar
+$stmt = $conn->query("SELECT COUNT(*) as total FROM consultas WHERE estado = 'nueva'");
+$consultas_nuevas = $stmt->fetch()['total'];
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Consultas - Autolote</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<?php
+$page_title = 'Gestión de Consultas';
+include '../includes/head.php';
+?>
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+        
+        .admin-sidebar {
+            min-height: 100vh;
+            background-color: #0f172a;
+            padding: 1.5rem 0;
+        }
+        
+        .admin-sidebar .nav-link {
+            color: #94a3b8;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0;
+            transition: all 0.2s;
+        }
+        
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            background-color: #1e293b;
+            color: #fff;
+        }
+        
+        .inquiries-table-card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table {
+            font-size: 0.9rem;
+        }
+        
+        .badge-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-status.nueva {
+            background-color: #dc2626;
+            color: white;
+        }
+        
+        .badge-status.leida {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .badge-status.respondida {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .status-select {
+            min-width: 140px;
+        }
+        
+        .btn-view {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .btn-view:hover {
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
+        
+        .modal-details {
+            font-size: 0.95rem;
+        }
+        
+        .modal-details .detail-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .modal-details .detail-value {
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+        
+        .new-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+            }
+            
+            .admin-sidebar.show {
+                left: 0;
+            }
+            
+            .col-md-10 {
+                width: 100%;
+            }
+            
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="index.php">
-                <i class="bi bi-car-front"></i> Autolote - Admin
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../index.php">Ver Sitio</a>
-                <a class="nav-link" href="../logout.php">Salir</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid my-4">
-        <div class="row">
+    <div class="container-fluid p-0">
+        <div class="row g-0">
             <!-- Sidebar -->
-            <div class="col-md-2">
-                <div class="list-group">
-                    <a href="index.php" class="list-group-item list-group-item-action">
-                        <i class="bi bi-speedometer2"></i> Dashboard
+            <div class="col-md-2 admin-sidebar">
+                <div class="px-3 mb-4">
+                    <a href="index.php" class="d-flex align-items-center text-white text-decoration-none">
+                        <i class="bi bi-car-front fs-3 me-2"></i>
+                        <span class="fs-5 fw-bold">Autolote</span>
                     </a>
-                    <a href="vehiculos.php" class="list-group-item list-group-item-action">
-                        <i class="bi bi-car-front"></i> Vehículos
-                    </a>
-                    <a href="usuarios.php" class="list-group-item list-group-item-action">
-                        <i class="bi bi-people"></i> Usuarios
-                    </a>
-                    <a href="consultas.php" class="list-group-item list-group-item-action active">
-                        <i class="bi bi-envelope"></i> Consultas
-                    </a>
+                    <small class="text-muted d-block mt-1">Panel Administrativo</small>
                 </div>
+                
+                <nav class="nav flex-column">
+                    <a href="index.php" class="nav-link">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
+                    <a href="vehiculos.php" class="nav-link">
+                        <i class="bi bi-car-front me-2"></i> Vehículos
+                    </a>
+                    <a href="usuarios.php" class="nav-link">
+                        <i class="bi bi-people me-2"></i> Usuarios
+                    </a>
+                    <a href="consultas.php" class="nav-link active position-relative">
+                        <i class="bi bi-envelope me-2"></i> Consultas
+                        <?php if ($consultas_nuevas > 0): ?>
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill new-badge" style="font-size: 0.65rem;">
+                                <?= $consultas_nuevas ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
+                    <hr class="text-muted my-2">
+                    <a href="../index.php" class="nav-link">
+                        <i class="bi bi-house me-2"></i> Ver Sitio
+                    </a>
+                    <a href="../logout.php" class="nav-link text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i> Salir
+                    </a>
+                </nav>
             </div>
 
-            <!-- Contenido -->
+            <!-- Contenido Principal -->
             <div class="col-md-10">
-                <h2 class="mb-4">Gestión de Consultas</h2>
+                <div class="p-4">
+                    <h1 class="display-5 fw-bold text-dark mb-4">Gestión de Consultas</h1>
 
-                <?php if (isset($_GET['success'])): ?>
-                    <div class="alert alert-success">Consulta <?= $_GET['success'] === 'eliminado' ? 'eliminada' : 'actualizada' ?> exitosamente</div>
-                <?php endif; ?>
+                    <?php if (isset($_GET['success'])): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>Estado actualizado exitosamente
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
 
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Email</th>
-                                        <th>Teléfono</th>
-                                        <th>Vehículo</th>
-                                        <th>Mensaje</th>
-                                        <th>Estado</th>
-                                        <th>Fecha</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($consultas as $consulta): ?>
-                                        <tr>
-                                            <td><?= $consulta['id'] ?></td>
-                                            <td><?= htmlspecialchars($consulta['nombre']) ?></td>
-                                            <td><?= htmlspecialchars($consulta['email']) ?></td>
-                                            <td><?= htmlspecialchars($consulta['telefono'] ?? '-') ?></td>
-                                            <td>
-                                                <?php if ($consulta['marca']): ?>
-                                                    <?= htmlspecialchars($consulta['marca'] . ' ' . $consulta['modelo']) ?>
-                                                <?php else: ?>
-                                                    <span class="text-muted">General</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#mensajeModal<?= $consulta['id'] ?>">
-                                                    Ver Mensaje
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-<?= $consulta['estado'] === 'nueva' ? 'danger' : ($consulta['estado'] === 'leida' ? 'warning' : 'success') ?>">
-                                                    <?= ucfirst($consulta['estado']) ?>
-                                                </span>
-                                            </td>
-                                            <td><?= date('d/m/Y H:i', strtotime($consulta['fecha_creacion'])) ?></td>
-                                            <td>
-                                                <?php if ($consulta['estado'] === 'nueva'): ?>
-                                                    <a href="consultas.php?cambiar_estado=<?= $consulta['id'] ?>&estado=leida" 
-                                                       class="btn btn-sm btn-warning" title="Marcar como Leída">
-                                                        <i class="bi bi-eye"></i>
-                                                    </a>
-                                                <?php elseif ($consulta['estado'] === 'leida'): ?>
-                                                    <a href="consultas.php?cambiar_estado=<?= $consulta['id'] ?>&estado=respondida" 
-                                                       class="btn btn-sm btn-success" title="Marcar como Respondida">
-                                                        <i class="bi bi-check-circle"></i>
-                                                    </a>
-                                                <?php endif; ?>
-                                                <a href="consultas.php?eliminar=<?= $consulta['id'] ?>" 
-                                                   class="btn btn-sm btn-danger" 
-                                                   onclick="return confirm('¿Estás seguro de eliminar esta consulta?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
+                    <?php if (isset($_GET['error'])): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <?php if ($_GET['error'] === 'no_encontrado'): ?>
+                                <i class="bi bi-exclamation-triangle me-2"></i>Consulta no encontrada
+                            <?php else: ?>
+                                <i class="bi bi-exclamation-triangle me-2"></i>Error al procesar la solicitud
+                            <?php endif; ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
 
-                                        <!-- Modal para mostrar mensaje -->
-                                        <div class="modal fade" id="mensajeModal<?= $consulta['id'] ?>" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Mensaje de <?= htmlspecialchars($consulta['nombre']) ?></h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p><strong>Email:</strong> <?= htmlspecialchars($consulta['email']) ?></p>
-                                                        <?php if ($consulta['telefono']): ?>
-                                                            <p><strong>Teléfono:</strong> <?= htmlspecialchars($consulta['telefono']) ?></p>
+                    <div class="card inquiries-table-card">
+                        <div class="card-body p-0">
+                            <?php if (empty($consultas)): ?>
+                                <div class="p-5 text-center text-muted">
+                                    <i class="bi bi-envelope fs-1 d-block mb-3"></i>
+                                    <p class="mb-0">No hay consultas registradas</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Vehículo</th>
+                                                <th>Nombre</th>
+                                                <th>Email</th>
+                                                <th>Teléfono</th>
+                                                <th>Fecha</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($consultas as $c): ?>
+                                                <tr class="<?= $c['estado'] === 'nueva' ? 'table-warning' : '' ?>">
+                                                    <td>
+                                                        <?php if ($c['vehiculo_id']): ?>
+                                                            <a href="../detalle.php?id=<?= $c['vehiculo_id'] ?>" 
+                                                               class="text-decoration-none text-dark fw-semibold"
+                                                               target="_blank">
+                                                                <?= htmlspecialchars($c['marca'] . ' ' . $c['modelo']) ?>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">Consulta General</span>
                                                         <?php endif; ?>
-                                                        <hr>
-                                                        <p><?= nl2br(htmlspecialchars($consulta['mensaje'])) ?></p>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($c['nombre']) ?></td>
+                                                    <td>
+                                                        <a href="mailto:<?= htmlspecialchars($c['email']) ?>" 
+                                                           class="text-decoration-none">
+                                                            <?= htmlspecialchars($c['email']) ?>
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <?php if ($c['telefono']): ?>
+                                                            <a href="tel:<?= htmlspecialchars($c['telefono']) ?>" 
+                                                               class="text-decoration-none">
+                                                                <?= htmlspecialchars($c['telefono']) ?>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">N/A</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">
+                                                            <?= date('d/m/Y H:i', strtotime($c['fecha_creacion'])) ?>
+                                                        </small>
+                                                    </td>
+                                                    <td>
+                                                        <form method="POST" class="d-inline">
+                                                            <input type="hidden" name="id" value="<?= $c['id'] ?>">
+                                                            <select name="estado" 
+                                                                    class="form-select form-select-sm status-select" 
+                                                                    onchange="this.form.submit()"
+                                                                    style="min-width: 140px;">
+                                                                <option value="nueva" <?= $c['estado'] === 'nueva' ? 'selected' : '' ?>>Nueva</option>
+                                                                <option value="leida" <?= $c['estado'] === 'leida' ? 'selected' : '' ?>>Leída</option>
+                                                                <option value="respondida" <?= $c['estado'] === 'respondida' ? 'selected' : '' ?>>Respondida</option>
+                                                            </select>
+                                                            <input type="hidden" name="cambiar_estado" value="1">
+                                                        </form>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" 
+                                                                class="btn-view" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#modalConsulta<?= $c['id'] ?>"
+                                                                title="Ver detalles">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+
+                                                <!-- Modal para detalles -->
+                                                <div class="modal fade" id="modalConsulta<?= $c['id'] ?>" tabindex="-1">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Detalles de la Consulta</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body modal-details">
+                                                                <div>
+                                                                    <div class="detail-label">Vehículo</div>
+                                                                    <div class="detail-value">
+                                                                        <?php if ($c['vehiculo_id']): ?>
+                                                                            <a href="../detalle.php?id=<?= $c['vehiculo_id'] ?>" 
+                                                                               class="text-decoration-none"
+                                                                               target="_blank">
+                                                                                <?= htmlspecialchars($c['marca'] . ' ' . $c['modelo']) ?>
+                                                                                <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                                            </a>
+                                                                        <?php else: ?>
+                                                                            <span class="text-muted">Consulta General</span>
+                                                                        <?php endif; ?>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <div class="detail-label">Nombre</div>
+                                                                    <div class="detail-value"><?= htmlspecialchars($c['nombre']) ?></div>
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <div class="detail-label">Email</div>
+                                                                    <div class="detail-value">
+                                                                        <a href="mailto:<?= htmlspecialchars($c['email']) ?>" 
+                                                                           class="text-decoration-none">
+                                                                            <?= htmlspecialchars($c['email']) ?>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <div class="detail-label">Teléfono</div>
+                                                                    <div class="detail-value">
+                                                                        <?php if ($c['telefono']): ?>
+                                                                            <a href="tel:<?= htmlspecialchars($c['telefono']) ?>" 
+                                                                               class="text-decoration-none">
+                                                                                <?= htmlspecialchars($c['telefono']) ?>
+                                                                            </a>
+                                                                        <?php else: ?>
+                                                                            <span class="text-muted">No proporcionado</span>
+                                                                        <?php endif; ?>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <div class="detail-label">Mensaje</div>
+                                                                    <div class="detail-value">
+                                                                        <div class="bg-light p-3 rounded" style="white-space: pre-wrap;">
+                                                                            <?= htmlspecialchars($c['mensaje']) ?>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <div class="detail-label">Estado</div>
+                                                                    <div class="detail-value">
+                                                                        <span class="badge-status <?= $c['estado'] ?>">
+                                                                            <?= ucfirst($c['estado']) ?>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <div class="detail-label">Fecha de Consulta</div>
+                                                                    <div class="detail-value">
+                                                                        <?= date('d/m/Y H:i:s', strtotime($c['fecha_creacion'])) ?>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                                <a href="mailto:<?= htmlspecialchars($c['email']) ?>?subject=Re: Consulta sobre <?= htmlspecialchars($c['marca'] . ' ' . $c['modelo']) ?>" 
+                                                                   class="btn btn-primary">
+                                                                    <i class="bi bi-envelope me-2"></i> Responder por Email
+                                                                </a>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <?php if ($pagination_info['total_pages'] > 1): ?>
+                                    <div class="card-footer bg-white border-0 py-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                Mostrando <?= $pagination_info['start_item'] ?>-<?= $pagination_info['end_item'] ?> de <?= $pagination_info['total_items'] ?> consultas
+                                            </small>
+                                            <?= generatePagination($pagination_info['current_page'], $pagination_info['total_pages'], $pagination_url, $query_params) ?>
                                         </div>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
+    <script src="<?= BASE_URL ?>/assets/js/admin-mobile.js"></script>
+<?php include '../includes/footer.php'; ?>
