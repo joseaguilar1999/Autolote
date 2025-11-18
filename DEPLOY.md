@@ -180,7 +180,15 @@ Si usas Render para PHP pero necesitas una base de datos gratuita, puedes usar e
 
 3. **Desplegar aplicación en Render**:
    - Conecta tu repositorio de GitHub
-   - Selecciona "Web Service" → PHP
+   - Selecciona "Web Service" → **PHP** (⚠️ IMPORTANTE: No selecciones Node)
+   - **Configuración en Render:**
+     - **Name**: Autolote (o el nombre que prefieras)
+     - **Language**: **PHP** (cambiar de Node a PHP)
+     - **Branch**: main
+     - **Region**: Oregon (US West) o el más cercano a ti
+     - **Root Directory**: (dejar vacío)
+     - **Build Command**: (dejar vacío - este proyecto PHP no necesita build)
+     - **Start Command**: (Render lo detecta automáticamente para PHP)
    - Configura las variables de entorno:
      ```
      DB_HOST=tu_host_neon
@@ -195,12 +203,33 @@ Si usas Render para PHP pero necesitas una base de datos gratuita, puedes usar e
    - Regístrate en railway.app
    - Crea un nuevo proyecto
    - Agrega servicio MySQL
-   - Anota las credenciales de conexión
+   - Railway te proporcionará una variable `MYSQL_URL` con el formato:
+     `mysql://root:contraseña@host:puerto/nombre_base_datos`
 
 2. **Desplegar aplicación en Render**:
    - Conecta tu repositorio de GitHub
-   - Selecciona "Web Service" → PHP
-   - Configura las variables de entorno con las credenciales de Railway
+   - Selecciona "Web Service" → **PHP** (⚠️ IMPORTANTE: No selecciones Node)
+   - **Configuración en Render:**
+     - **Name**: Autolote
+     - **Language**: **PHP** (cambiar de Node a PHP)
+     - **Branch**: main
+     - **Region**: Oregon (US West) o el más cercano a ti
+     - **Root Directory**: (dejar vacío)
+     - **Build Command**: (dejar vacío - este proyecto PHP no necesita build)
+     - **Start Command**: (Render lo detecta automáticamente para PHP)
+   - Configura las variables de entorno:
+     - **Opción 1 (Recomendada)**: Copia la variable `MYSQL_URL` completa de Railway:
+       ```
+       MYSQL_URL=mysql://root:contraseña@containers-us-west-xxx.railway.app:3306/railway
+       ```
+       El código parseará automáticamente esta URL.
+     - **Opción 2**: Usa variables individuales:
+       ```
+       DB_HOST=containers-us-west-xxx.railway.app
+       DB_USER=root
+       DB_PASS=tu_contraseña
+       DB_NAME=railway
+       ```
 
 ### Opción C: Render + PostgreSQL (90 días gratis)
 

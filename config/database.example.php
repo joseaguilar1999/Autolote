@@ -27,6 +27,10 @@
 // NOTA: Necesitarás cambiar PDO de mysql: a pgsql: en database.php
 
 // Render + Railway MySQL (variables de entorno en Render Dashboard):
+// OPCIÓN 1: Usar MYSQL_URL (recomendado - se parsea automáticamente):
+// MYSQL_URL=mysql://root:contraseña@containers-us-west-xxx.railway.app:3306/railway
+//
+// OPCIÓN 2: Usar variables individuales:
 // DB_HOST=containers-us-west-xxx.railway.app
 // DB_USER=root
 // DB_PASS=tu_contraseña_railway
