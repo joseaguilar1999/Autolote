@@ -1,0 +1,13 @@
+# Configuración básica
+RewriteEngine On
+
+# Redirigir a index.php si el archivo no existe
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Proteger archivos sensibles
+<FilesMatch "\.(sql|md|log)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
