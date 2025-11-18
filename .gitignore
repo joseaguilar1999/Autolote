@@ -33,3 +33,9 @@ sessions/
 .env
 .env.local
 
+# Scripts de administración/seguridad (no subir a producción)
+actualizar_password_admin.php
+fix_telefono_script.php
+importar_railway.php
+fix_telefono_field.sql
+
