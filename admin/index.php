@@ -54,12 +54,13 @@ $consultas_recientes = $stmt->fetchAll();
 // Obtener estadísticas para el sidebar
 $stmt = $conn->query("SELECT COUNT(*) as total FROM consultas WHERE estado = 'nueva'");
 $consultas_nuevas = $stmt->fetch()['total'];
-?>
-<?php
+
 $page_title = 'Dashboard Administrativo';
-include '../includes/head.php';
+
+// Preparar contenido para el layout
+ob_start();
 ?>
-    <style>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -69,58 +70,6 @@ include '../includes/head.php';
         body {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        
-        .admin-sidebar {
-            min-height: 100vh;
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            padding: 1.5rem 0;
-            box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .admin-sidebar .nav-link {
-            color: #94a3b8;
-            padding: 0.875rem 1.5rem;
-            border-radius: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            margin: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
-        }
-        
-        .admin-sidebar .nav-link::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 0 2px 2px 0;
-            transition: height 0.3s ease;
-        }
-        
-        .admin-sidebar .nav-link:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            transform: translateX(4px);
-        }
-        
-        .admin-sidebar .nav-link.active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-            color: #fff;
-            border-left: 3px solid #667eea;
-        }
-        
-        .admin-sidebar .nav-link.active::before {
-            height: 60%;
-        }
-        
-        .admin-sidebar .nav-link i {
-            width: 20px;
-            text-align: center;
-            margin-right: 0.75rem;
         }
         
         .page-header {
@@ -379,28 +328,6 @@ include '../includes/head.php';
         
         /* Responsive */
         @media (max-width: 768px) {
-            .admin-sidebar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100vh;
-                z-index: 1000;
-                transition: left 0.3s ease;
-                overflow-y: auto;
-            }
-            
-            .admin-sidebar.show {
-                left: 0;
-            }
-            
-            .col-md-10 {
-                width: 100%;
-            }
-            
-            .col-md-2 {
-                width: 100%;
-            }
-            
             .row.g-4 > [class*="col-"] {
                 margin-bottom: 1rem;
             }
@@ -431,12 +358,6 @@ include '../includes/head.php';
                 font-size: 0.7rem;
             }
             
-            .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-            
             .page-header {
                 padding: 1.5rem;
             }
@@ -446,258 +367,213 @@ include '../includes/head.php';
             }
         }
     </style>
-</head>
-<body>
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-md-2 admin-sidebar">
-                <div class="px-3 mb-4">
-                    <a href="index.php" class="d-flex align-items-center text-white text-decoration-none">
-                        <i class="bi bi-car-front fs-3 me-2"></i>
-                        <span class="fs-5 fw-bold">Autolote</span>
-                    </a>
-                    <small class="text-muted d-block mt-1">Panel Administrativo</small>
+
+    <div class="page-header">
+        <h1 class="mb-0">
+            <i class="bi bi-speedometer2 me-2"></i>
+            Dashboard Administrativo
+        </h1>
+        <p class="text-muted mb-0 mt-2">Resumen general del sistema</p>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <p class="stat-label">Total Vehículos</p>
+                            <div class="stat-value"><?= $stats['total_vehiculos'] ?></div>
+                            <div class="stat-footer">
+                                Disponibles: <strong><?= $stats['vehiculos_disponibles'] ?></strong> | 
+                                Vendidos: <strong><?= $stats['vehiculos_vendidos'] ?></strong>
+                            </div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="bi bi-car-front"></i>
+                        </div>
+                    </div>
                 </div>
-                
-                <nav class="nav flex-column">
-                    <a href="index.php" class="nav-link active">
-                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                    </a>
-                    <a href="vehiculos.php" class="nav-link">
-                        <i class="bi bi-car-front me-2"></i> Vehículos
-                    </a>
-                    <a href="usuarios.php" class="nav-link">
-                        <i class="bi bi-people me-2"></i> Usuarios
-                    </a>
-                    <a href="consultas.php" class="nav-link position-relative">
-                        <i class="bi bi-envelope me-2"></i> Consultas
-                        <?php if ($consultas_nuevas > 0): ?>
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" style="font-size: 0.65rem;">
-                                <?= $consultas_nuevas ?>
-                            </span>
-                        <?php endif; ?>
-                    </a>
-                    <hr class="text-muted my-2">
-                    <a href="../index.php" class="nav-link">
-                        <i class="bi bi-house me-2"></i> Ver Sitio
-                    </a>
-                    <a href="../logout.php" class="nav-link text-danger">
-                        <i class="bi bi-box-arrow-right me-2"></i> Salir
-                    </a>
-                </nav>
             </div>
+        </div>
 
-            <!-- Contenido Principal -->
-            <div class="col-md-10">
-                <div class="p-4">
-                    <div class="page-header">
-                        <h1 class="mb-0">
-                            <i class="bi bi-speedometer2 me-2"></i>
-                            Dashboard Administrativo
-                        </h1>
-                        <p class="text-muted mb-0 mt-2">Resumen general del sistema</p>
-                    </div>
-
-                    <!-- Estadísticas -->
-                    <div class="row g-4 mb-5">
-                        <div class="col-6 col-md-6 col-lg-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <p class="stat-label">Total Vehículos</p>
-                                            <div class="stat-value"><?= $stats['total_vehiculos'] ?></div>
-                                            <div class="stat-footer">
-                                                Disponibles: <strong><?= $stats['vehiculos_disponibles'] ?></strong> | 
-                                                Vendidos: <strong><?= $stats['vehiculos_vendidos'] ?></strong>
-                                            </div>
-                                        </div>
-                                        <div class="stat-icon blue">
-                                            <i class="bi bi-car-front"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+        <div class="col-6 col-md-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <p class="stat-label">Usuarios Registrados</p>
+                            <div class="stat-value"><?= $stats['total_clientes'] ?></div>
                         </div>
-
-                        <div class="col-6 col-md-6 col-lg-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <p class="stat-label">Usuarios Registrados</p>
-                                            <div class="stat-value"><?= $stats['total_clientes'] ?></div>
-                                        </div>
-                                        <div class="stat-icon green">
-                                            <i class="bi bi-people"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-6 col-md-6 col-lg-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <p class="stat-label">Consultas</p>
-                                            <div class="stat-value"><?= $stats['total_consultas'] ?></div>
-                                            <div class="stat-footer">
-                                                Pendientes: <strong class="text-danger"><?= $stats['consultas_nuevas'] ?></strong>
-                                            </div>
-                                        </div>
-                                        <div class="stat-icon orange">
-                                            <i class="bi bi-envelope"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-6 col-md-6 col-lg-3">
-                            <div class="card stat-card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <p class="stat-label">Ingresos Totales</p>
-                                            <div class="stat-value"><?= formatPrice($stats['ingresos_totales']) ?></div>
-                                            <div class="stat-footer">
-                                                De vehículos vendidos
-                                            </div>
-                                        </div>
-                                        <div class="stat-icon purple">
-                                            <i class="bi bi-currency-dollar"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="stat-icon green">
+                            <i class="bi bi-people"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Tablas de Información Reciente -->
-                    <div class="row g-4">
-                        <!-- Vehículos Recientes -->
-                        <div class="col-md-6">
-                            <div class="card recent-card">
-                                <div class="card-header">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-car-front me-2"></i>
-                                        Vehículos Recientes
-                                    </h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <?php if (empty($vehiculos_recientes)): ?>
-                                        <div class="empty-state">
-                                            <i class="bi bi-inbox"></i>
-                                            <p class="mb-0">No hay vehículos registrados</p>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover mb-0 recent-table">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>Vehículo</th>
-                                                        <th>Año</th>
-                                                        <th>Precio</th>
-                                                        <th>Estado</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($vehiculos_recientes as $v): ?>
-                                                        <tr>
-                                                            <td>
-                                                                <a href="vehiculo_form.php?id=<?= $v['id'] ?>" class="text-decoration-none text-dark fw-semibold">
-                                                                    <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>
-                                                                </a>
-                                                            </td>
-                                                            <td><?= $v['año'] ?></td>
-                                                            <td><?= formatPrice($v['precio']) ?></td>
-                                                            <td>
-                                                                <span class="badge-status bg-<?= $v['estado'] === 'disponible' ? 'success' : ($v['estado'] === 'vendido' ? 'danger' : 'warning') ?>">
-                                                                    <?= ucfirst($v['estado']) ?>
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="card-footer">
-                                            <a href="vehiculos.php" class="btn btn-sm btn-outline-primary">
-                                                Ver Todos los Vehículos <i class="bi bi-arrow-right ms-1"></i>
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
+        <div class="col-6 col-md-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <p class="stat-label">Consultas</p>
+                            <div class="stat-value"><?= $stats['total_consultas'] ?></div>
+                            <div class="stat-footer">
+                                Pendientes: <strong class="text-danger"><?= $stats['consultas_nuevas'] ?></strong>
                             </div>
                         </div>
+                        <div class="stat-icon orange">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <!-- Consultas Recientes -->
-                        <div class="col-md-6">
-                            <div class="card recent-card">
-                                <div class="card-header">
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-envelope me-2"></i>
-                                        Consultas Recientes
-                                    </h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    <?php if (empty($consultas_recientes)): ?>
-                                        <div class="empty-state">
-                                            <i class="bi bi-inbox"></i>
-                                            <p class="mb-0">No hay consultas</p>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover mb-0 recent-table">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>Nombre</th>
-                                                        <th>Vehículo</th>
-                                                        <th>Estado</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($consultas_recientes as $c): ?>
-                                                        <tr>
-                                                            <td>
-                                                                <a href="consultas.php" class="text-decoration-none text-dark fw-semibold">
-                                                                    <?= htmlspecialchars($c['nombre']) ?>
-                                                                </a>
-                                                            </td>
-                                                            <td>
-                                                                <?php if ($c['marca']): ?>
-                                                                    <small class="text-muted"><?= htmlspecialchars($c['marca'] . ' ' . $c['modelo']) ?></small>
-                                                                <?php else: ?>
-                                                                    <small class="text-muted">General</small>
-                                                                <?php endif; ?>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge-status bg-<?= $c['estado'] === 'nueva' ? 'danger' : ($c['estado'] === 'leida' ? 'warning' : 'success') ?>">
-                                                                    <?= ucfirst($c['estado']) ?>
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="card-footer">
-                                            <a href="consultas.php" class="btn btn-sm btn-outline-primary">
-                                                Ver Todas las Consultas <i class="bi bi-arrow-right ms-1"></i>
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
+        <div class="col-6 col-md-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <p class="stat-label">Ingresos Totales</p>
+                            <div class="stat-value"><?= formatPrice($stats['ingresos_totales']) ?></div>
+                            <div class="stat-footer">
+                                De vehículos vendidos
                             </div>
+                        </div>
+                        <div class="stat-icon purple">
+                            <i class="bi bi-currency-dollar"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <?php $hide_footer = true; ?>
-    <script src="<?= BASE_URL ?>/assets/js/admin-mobile.js"></script>
-<?php include '../includes/footer.php'; ?>
+
+    <!-- Tablas de Información Reciente -->
+    <div class="row g-4">
+        <!-- Vehículos Recientes -->
+        <div class="col-md-6">
+            <div class="card recent-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-car-front me-2"></i>
+                        Vehículos Recientes
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <?php if (empty($vehiculos_recientes)): ?>
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mb-0">No hay vehículos registrados</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 recent-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Vehículo</th>
+                                        <th>Año</th>
+                                        <th>Precio</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($vehiculos_recientes as $v): ?>
+                                        <tr>
+                                            <td>
+                                                <a href="vehiculo_form.php?id=<?= $v['id'] ?>" class="text-decoration-none text-dark fw-semibold">
+                                                    <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>
+                                                </a>
+                                            </td>
+                                            <td><?= $v['año'] ?></td>
+                                            <td><?= formatPrice($v['precio']) ?></td>
+                                            <td>
+                                                <span class="badge-status bg-<?= $v['estado'] === 'disponible' ? 'success' : ($v['estado'] === 'vendido' ? 'danger' : 'warning') ?>">
+                                                    <?= ucfirst($v['estado']) ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer">
+                            <a href="vehiculos.php" class="btn btn-sm btn-outline-primary">
+                                Ver Todos los Vehículos <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consultas Recientes -->
+        <div class="col-md-6">
+            <div class="card recent-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-envelope me-2"></i>
+                        Consultas Recientes
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <?php if (empty($consultas_recientes)): ?>
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mb-0">No hay consultas</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 recent-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Vehículo</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($consultas_recientes as $c): ?>
+                                        <tr>
+                                            <td>
+                                                <a href="consultas.php" class="text-decoration-none text-dark fw-semibold">
+                                                    <?= htmlspecialchars($c['nombre']) ?>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <?php if ($c['marca']): ?>
+                                                    <small class="text-muted"><?= htmlspecialchars($c['marca'] . ' ' . $c['modelo']) ?></small>
+                                                <?php else: ?>
+                                                    <small class="text-muted">General</small>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge-status bg-<?= $c['estado'] === 'nueva' ? 'danger' : ($c['estado'] === 'leida' ? 'warning' : 'success') ?>">
+                                                    <?= ucfirst($c['estado']) ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer">
+                            <a href="consultas.php" class="btn btn-sm btn-outline-primary">
+                                Ver Todas las Consultas <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+$admin_content = ob_get_clean();
+include '../includes/admin_layout.php';
+?>
