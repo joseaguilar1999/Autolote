@@ -13,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($nombre && $email && $password) {
         $conn = getDBConnection();
         
+        // Validar y limitar longitud del teléfono (máximo 50 caracteres)
+        $telefono = !empty($telefono) ? substr(trim($telefono), 0, 50) : null;
+        
         // Verificar si el email ya existe
         $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
         $stmt->execute([$email]);
@@ -22,12 +25,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("INSERT INTO usuarios (nombre, email, telefono, password, tipo) VALUES (?, ?, ?, ?, 'cliente')");
             
-            if ($stmt->execute([$nombre, $email, $telefono, $hashed_password])) {
-                $success = 'Registro exitoso. Ahora puedes iniciar sesión.';
-                // Limpiar formulario después de éxito
-                $nombre = $email = $telefono = '';
-            } else {
-                $error = 'Error al registrar usuario';
+            try {
+                if ($stmt->execute([$nombre, $email, $telefono, $hashed_password])) {
+                    $success = 'Registro exitoso. Ahora puedes iniciar sesión.';
+                    // Limpiar formulario después de éxito
+                    $nombre = $email = $telefono = '';
+                } else {
+                    $error = 'Error al registrar usuario';
+                }
+            } catch (PDOException $e) {
+                $error = 'Error al registrar usuario. Por favor verifica los datos ingresados.';
+                // Log del error para debugging (en producción, no mostrar detalles)
+                error_log("Error en registro: " . $e->getMessage());
             }
         }
     } else {

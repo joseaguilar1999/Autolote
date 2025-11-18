@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    telefono VARCHAR(20),
+    telefono VARCHAR(50),
     tipo ENUM('admin', 'cliente') DEFAULT 'cliente',
     activo TINYINT(1) DEFAULT 1,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS consultas (
     vehiculo_id INT,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20),
+    telefono VARCHAR(50),
     mensaje TEXT NOT NULL,
     estado ENUM('nueva', 'leida', 'respondida') DEFAULT 'nueva',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
