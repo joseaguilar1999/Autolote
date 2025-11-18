@@ -1,0 +1,13 @@
+# Permitir solo acceso a través del router (api/index.php)
+# Bloquear acceso directo a otros archivos PHP en api/
+<FilesMatch "^(consultas|favoritos|vehicles)\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Permitir acceso solo a index.php
+<Files "index.php">
+    Order Allow,Deny
+    Allow from all
+</Files>
+

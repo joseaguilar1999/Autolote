@@ -60,79 +60,322 @@ $page_title = 'Dashboard Administrativo';
 include '../includes/head.php';
 ?>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            background-color: #f8fafc;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
         .admin-sidebar {
             min-height: 100vh;
-            background-color: #0f172a;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
             padding: 1.5rem 0;
+            box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
         }
         
         .admin-sidebar .nav-link {
             color: #94a3b8;
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.5rem;
             border-radius: 0;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            margin: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
         }
         
-        .admin-sidebar .nav-link:hover,
-        .admin-sidebar .nav-link.active {
-            background-color: #1e293b;
+        .admin-sidebar .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.3s ease;
+        }
+        
+        .admin-sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
             color: #fff;
+            transform: translateX(4px);
+        }
+        
+        .admin-sidebar .nav-link.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            color: #fff;
+            border-left: 3px solid #667eea;
+        }
+        
+        .admin-sidebar .nav-link.active::before {
+            height: 60%;
+        }
+        
+        .admin-sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 0.75rem;
+        }
+        
+        .page-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .page-header h1 {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
         
         .stat-card {
             border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            border-radius: 1rem;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.5), transparent);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+        
+        .stat-card:hover::before {
+            transform: scaleX(1);
         }
         
         .stat-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-4px);
+        }
+        
+        .stat-card .card-body {
+            padding: 1.75rem;
+        }
+        
+        .stat-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 0.5rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
         }
         
         .stat-icon.blue {
-            background-color: #dbeafe;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
             color: #2563eb;
         }
         
         .stat-icon.green {
-            background-color: #d1fae5;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #10b981;
         }
         
         .stat-icon.orange {
-            background-color: #fed7aa;
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
             color: #f97316;
         }
         
         .stat-icon.purple {
-            background-color: #e9d5ff;
+            background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
             color: #9333ea;
         }
         
+        .stat-footer {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .stat-footer strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .recent-card {
+            border: none;
+            border-radius: 1rem;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            overflow: hidden;
+        }
+        
+        .recent-card .card-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 2px solid #e2e8f0;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .recent-card .card-header h5 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        
         .recent-table {
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+        }
+        
+        .recent-table thead {
+            background: #f8fafc;
+        }
+        
+        .recent-table thead th {
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .recent-table tbody td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .recent-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .recent-table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+        }
+        
+        .recent-table tbody a {
+            color: #1e293b;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .recent-table tbody a:hover {
+            color: #667eea;
         }
         
         .badge-status {
-            padding: 0.25rem 0.75rem;
+            padding: 0.375rem 0.875rem;
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
+        
+        .card-footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+            transform: translateX(4px);
+        }
+        
+        .empty-state {
+            padding: 3rem 2rem;
+            text-align: center;
+            color: #94a3b8;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stat-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -163,16 +406,43 @@ include '../includes/head.php';
             }
             
             .recent-table {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
             }
             
             .stat-card .card-body {
-                padding: 1rem !important;
+                padding: 1.25rem !important;
             }
             
             .stat-icon {
-                width: 32px;
-                height: 32px;
+                width: 48px;
+                height: 48px;
+                font-size: 1.25rem;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
+            }
+            
+            .stat-footer {
+                font-size: 0.7rem;
+            }
+            
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+            }
+            
+            .page-header h1 {
+                font-size: 1.75rem;
             }
         }
     </style>
@@ -221,78 +491,86 @@ include '../includes/head.php';
             <!-- Contenido Principal -->
             <div class="col-md-10">
                 <div class="p-4">
-                    <h1 class="display-5 fw-bold text-dark mb-5">Dashboard</h1>
+                    <div class="page-header">
+                        <h1 class="mb-0">
+                            <i class="bi bi-speedometer2 me-2"></i>
+                            Dashboard Administrativo
+                        </h1>
+                        <p class="text-muted mb-0 mt-2">Resumen general del sistema</p>
+                    </div>
 
                     <!-- Estadísticas -->
                     <div class="row g-4 mb-5">
-                        <div class="col-md-6 col-lg-3">
+                        <div class="col-6 col-md-6 col-lg-3">
                             <div class="card stat-card h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <p class="text-muted small mb-1 fw-semibold">Total Vehículos</p>
-                                            <h2 class="h3 fw-bold text-dark mb-0"><?= $stats['total_vehiculos'] ?></h2>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="stat-label">Total Vehículos</p>
+                                            <div class="stat-value"><?= $stats['total_vehiculos'] ?></div>
+                                            <div class="stat-footer">
+                                                Disponibles: <strong><?= $stats['vehiculos_disponibles'] ?></strong> | 
+                                                Vendidos: <strong><?= $stats['vehiculos_vendidos'] ?></strong>
+                                            </div>
                                         </div>
                                         <div class="stat-icon blue">
-                                            <i class="bi bi-car-front fs-5"></i>
+                                            <i class="bi bi-car-front"></i>
                                         </div>
                                     </div>
-                                    <p class="text-muted small mb-0">
-                                        Disponibles: <strong><?= $stats['vehiculos_disponibles'] ?></strong> | 
-                                        Vendidos: <strong><?= $stats['vehiculos_vendidos'] ?></strong>
-                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3">
+                        <div class="col-6 col-md-6 col-lg-3">
                             <div class="card stat-card h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <p class="text-muted small mb-1 fw-semibold">Usuarios Registrados</p>
-                                            <h2 class="h3 fw-bold text-dark mb-0"><?= $stats['total_clientes'] ?></h2>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="stat-label">Usuarios Registrados</p>
+                                            <div class="stat-value"><?= $stats['total_clientes'] ?></div>
                                         </div>
                                         <div class="stat-icon green">
-                                            <i class="bi bi-people fs-5"></i>
+                                            <i class="bi bi-people"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3">
+                        <div class="col-6 col-md-6 col-lg-3">
                             <div class="card stat-card h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <p class="text-muted small mb-1 fw-semibold">Consultas</p>
-                                            <h2 class="h3 fw-bold text-dark mb-0"><?= $stats['total_consultas'] ?></h2>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="stat-label">Consultas</p>
+                                            <div class="stat-value"><?= $stats['total_consultas'] ?></div>
+                                            <div class="stat-footer">
+                                                Pendientes: <strong class="text-danger"><?= $stats['consultas_nuevas'] ?></strong>
+                                            </div>
                                         </div>
                                         <div class="stat-icon orange">
-                                            <i class="bi bi-envelope fs-5"></i>
+                                            <i class="bi bi-envelope"></i>
                                         </div>
                                     </div>
-                                    <p class="text-muted small mb-0">
-                                        Pendientes: <strong class="text-danger"><?= $stats['consultas_nuevas'] ?></strong>
-                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3">
+                        <div class="col-6 col-md-6 col-lg-3">
                             <div class="card stat-card h-100">
-                                <div class="card-body p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <p class="text-muted small mb-1 fw-semibold">Ingresos Totales</p>
-                                            <h2 class="h3 fw-bold text-dark mb-0"><?= formatPrice($stats['ingresos_totales']) ?></h2>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <p class="stat-label">Ingresos Totales</p>
+                                            <div class="stat-value"><?= formatPrice($stats['ingresos_totales']) ?></div>
+                                            <div class="stat-footer">
+                                                De vehículos vendidos
+                                            </div>
                                         </div>
                                         <div class="stat-icon purple">
-                                            <i class="bi bi-currency-dollar fs-5"></i>
+                                            <i class="bi bi-currency-dollar"></i>
                                         </div>
                                     </div>
-                                    <p class="text-muted small mb-0">De vehículos vendidos</p>
                                 </div>
                             </div>
                         </div>
@@ -302,13 +580,17 @@ include '../includes/head.php';
                     <div class="row g-4">
                         <!-- Vehículos Recientes -->
                         <div class="col-md-6">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0 py-3">
-                                    <h5 class="fw-bold mb-0">Vehículos Recientes</h5>
+                            <div class="card recent-card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-car-front me-2"></i>
+                                        Vehículos Recientes
+                                    </h5>
                                 </div>
                                 <div class="card-body p-0">
                                     <?php if (empty($vehiculos_recientes)): ?>
-                                        <div class="p-4 text-center text-muted">
+                                        <div class="empty-state">
+                                            <i class="bi bi-inbox"></i>
                                             <p class="mb-0">No hay vehículos registrados</p>
                                         </div>
                                     <?php else: ?>
@@ -342,7 +624,7 @@ include '../includes/head.php';
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div class="card-footer bg-white border-0 py-3">
+                                        <div class="card-footer">
                                             <a href="vehiculos.php" class="btn btn-sm btn-outline-primary">
                                                 Ver Todos los Vehículos <i class="bi bi-arrow-right ms-1"></i>
                                             </a>
@@ -354,13 +636,17 @@ include '../includes/head.php';
 
                         <!-- Consultas Recientes -->
                         <div class="col-md-6">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0 py-3">
-                                    <h5 class="fw-bold mb-0">Consultas Recientes</h5>
+                            <div class="card recent-card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-envelope me-2"></i>
+                                        Consultas Recientes
+                                    </h5>
                                 </div>
                                 <div class="card-body p-0">
                                     <?php if (empty($consultas_recientes)): ?>
-                                        <div class="p-4 text-center text-muted">
+                                        <div class="empty-state">
+                                            <i class="bi bi-inbox"></i>
                                             <p class="mb-0">No hay consultas</p>
                                         </div>
                                     <?php else: ?>
@@ -398,7 +684,7 @@ include '../includes/head.php';
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div class="card-footer bg-white border-0 py-3">
+                                        <div class="card-footer">
                                             <a href="consultas.php" class="btn btn-sm btn-outline-primary">
                                                 Ver Todas las Consultas <i class="bi bi-arrow-right ms-1"></i>
                                             </a>
@@ -412,5 +698,6 @@ include '../includes/head.php';
             </div>
         </div>
     </div>
+    <?php $hide_footer = true; ?>
     <script src="<?= BASE_URL ?>/assets/js/admin-mobile.js"></script>
 <?php include '../includes/footer.php'; ?>

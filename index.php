@@ -523,13 +523,6 @@ include 'includes/head.php';
     </section>
     <?php endif; ?>
 
-    <!-- Footer -->
-    <footer class="mt-5 py-4">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 Autolote. Todos los derechos reservados.</p>
-        </div>
-    </footer>
-
 <script>
     // Filtros en tiempo real
     document.addEventListener('DOMContentLoaded', function() {

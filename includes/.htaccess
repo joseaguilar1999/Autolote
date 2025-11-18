@@ -1,0 +1,4 @@
+# Denegar acceso directo a includes
+Order Allow,Deny
+Deny from all
+

@@ -1,17 +1,59 @@
 # Configuración básica
 RewriteEngine On
 
+# Deshabilitar listado de directorios
+Options -Indexes
+
 # API Routes
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^api/(.*)$ api/index.php [QSA,L]
 
-# Redirigir a index.php si el archivo no existe
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Proteger archivos sensibles - Denegar acceso directo
+<FilesMatch "\.(sql|md|log|bat|ini|conf)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
 
-# Proteger archivos sensibles
-<FilesMatch "\.(sql|md|log)$">
+# Proteger archivos de configuración PHP
+<FilesMatch "^(config|database|security|pagination)\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Proteger archivos de utilidades internas
+<FilesMatch "^(test_connection|verificar_bd|start|seed_vehicles|seed_result|iniciar_servicios)\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Proteger directorios sensibles
+<IfModule mod_rewrite.c>
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^includes/ - [F,L]
+    RewriteRule ^\.git/ - [F,L]
+    RewriteRule ^\.gitignore$ - [F,L]
+</IfModule>
+
+# Proteger archivos de documentación (opcional - comentar si quieres acceso)
+<FilesMatch "\.md$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Permitir solo archivos PHP públicos específicos
+# Las páginas públicas deben estar en la raíz y ser accesibles
+# Las páginas admin están protegidas por requireAdmin() en PHP
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Prevenir acceso a archivos ocultos
+<FilesMatch "^\.">
     Order Allow,Deny
     Deny from all
 </FilesMatch>

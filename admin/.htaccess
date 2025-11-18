@@ -1,0 +1,7 @@
+# Protección adicional para admin
+# La protección principal está en PHP con requireAdmin()
+# Este archivo es una capa adicional de seguridad
+
+# Prevenir acceso directo a archivos si no hay sesión válida
+# (La validación principal está en cada archivo PHP)
+

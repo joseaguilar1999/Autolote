@@ -1,0 +1,4 @@
+# Denegar acceso a todo el directorio config
+Order Allow,Deny
+Deny from all
+

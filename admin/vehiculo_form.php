@@ -184,152 +184,253 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener consultas nuevas para el sidebar
+// Obtener estadísticas para el sidebar
 $stmt = $conn->query("SELECT COUNT(*) as total FROM consultas WHERE estado = 'nueva'");
 $consultas_nuevas = $stmt->fetch()['total'];
 
 // Preparar contenido para el layout
 ob_start();
 ?>
-    <style>
-        .form-card {
-            border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-        }
-        
-        .image-preview-container {
-            position: relative;
+<style>
+    .form-card {
+        border: none;
+        border-radius: 1rem;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .form-card .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 2px solid #e2e8f0;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .form-card .card-header h5 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-control,
+    .form-select {
+        border: 2px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        font-size: 0.9375rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+    
+    .input-group-text {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 2px solid #e2e8f0;
+        color: #475569;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+    }
+    
+    .image-preview-container {
+        position: relative;
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .image-preview {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        border-radius: 0.75rem;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .image-preview:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .image-actions {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .image-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 0.375rem 0.875rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-image-action {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #64748b;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-image-action:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-image-action.delete:hover {
+        color: #dc2626;
+        border-color: #fecaca;
+        background: #fee2e2;
+    }
+    
+    .btn-image-action.primary:hover {
+        color: #2563eb;
+        border-color: #bfdbfe;
+        background: #dbeafe;
+    }
+    
+    .image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .image-item {
+        position: relative;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    
+    .image-item:hover {
+        border-color: #667eea;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .image-item img {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+        color: #475569;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .row > [class*="col-"] {
             margin-bottom: 1rem;
         }
         
-        .image-preview {
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .d-flex.gap-2 {
+            flex-direction: column;
+        }
+        
+        .d-flex.gap-2 .btn {
             width: 100%;
-            aspect-ratio: 16/9;
-            object-fit: cover;
-            border-radius: 0.5rem;
-            border: 2px solid #e2e8f0;
         }
         
-        .image-actions {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
+        .image-preview-container {
+            margin-bottom: 1rem;
         }
         
-        .image-badge {
-            position: absolute;
-            top: 0.5rem;
-            left: 0.5rem;
-            background-color: #10b981;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            font-weight: 600;
+        .form-card .card-body {
+            padding: 1rem !important;
         }
         
-        .btn-image-action {
-            background-color: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 0.25rem;
-            padding: 0.375rem 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
+        .image-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
         }
-        
-        .btn-image-action:hover {
-            background-color: white;
-            transform: scale(1.1);
-        }
-        
-        .btn-image-action.delete:hover {
-            color: #dc2626;
-        }
-        
-        .btn-image-action.primary:hover {
-            color: #2563eb;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .admin-sidebar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100vh;
-                z-index: 1000;
-                transition: left 0.3s ease;
-                overflow-y: auto;
-            }
-            
-            .admin-sidebar.show {
-                left: 0;
-            }
-            
-            .col-md-10 {
-                width: 100%;
-            }
-            
-            .col-md-2 {
-                width: 100%;
-            }
-            
-            .row > [class*="col-"] {
-                margin-bottom: 1rem;
-            }
-            
-            .d-flex.justify-content-between {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .d-flex.gap-2 {
-                flex-direction: column;
-            }
-            
-            .d-flex.gap-2 .btn {
-                width: 100%;
-            }
-            
-            .image-preview-container {
-                margin-bottom: 1rem;
-            }
-            
-            .form-card .card-body {
-                padding: 1rem !important;
-            }
-        }
-    </style>
+    }
+</style>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-5 fw-bold text-dark mb-0"><?= $id ? 'Editar' : 'Nuevo' ?> Vehículo</h1>
-        <a href="vehiculos.php" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i> Volver
-        </a>
+<div class="page-header">
+    <div>
+        <h1>
+            <i class="bi bi-<?= $id ? 'pencil-square' : 'plus-circle' ?>"></i>
+            <?= $id ? 'Editar' : 'Nuevo' ?> Vehículo
+        </h1>
+        <p class="subtitle"><?= $id ? 'Modifica la información del vehículo' : 'Agrega un nuevo vehículo al catálogo' ?></p>
     </div>
+    <a href="vehiculos.php" class="btn btn-outline-primary-admin">
+        <i class="bi bi-arrow-left me-2"></i> Volver
+    </a>
+</div>
 
-    <?php if ($error): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
+<?php if ($error): ?>
+    <div class="alert-admin alert-danger-admin">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span><?= htmlspecialchars($error) ?></span>
+    </div>
+<?php endif; ?>
 
-    <?php if (isset($_GET['success'])): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?php if ($_GET['success'] === 'guardado'): ?>
-                <i class="bi bi-check-circle me-2"></i>Vehículo guardado exitosamente.
-            <?php elseif ($_GET['success'] === 'imagen_eliminada'): ?>
-                <i class="bi bi-check-circle me-2"></i>Imagen eliminada exitosamente.
-            <?php elseif ($_GET['success'] === 'imagen_principal'): ?>
-                <i class="bi bi-check-circle me-2"></i>Imagen marcada como principal.
-            <?php endif; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert-admin alert-success-admin">
+        <?php if ($_GET['success'] === 'guardado'): ?>
+            <i class="bi bi-check-circle"></i>
+            <span>Vehículo guardado exitosamente.</span>
+        <?php elseif ($_GET['success'] === 'imagen_eliminada'): ?>
+            <i class="bi bi-check-circle"></i>
+            <span>Imagen eliminada exitosamente.</span>
+        <?php elseif ($_GET['success'] === 'imagen_principal'): ?>
+            <i class="bi bi-check-circle"></i>
+            <span>Imagen marcada como principal.</span>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data">
         <div class="row">
@@ -355,7 +456,7 @@ ob_start();
                             <div class="col-md-4 mb-3">
                                 <label class="form-label fw-semibold">Precio *</label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">Lps.</span>
                                     <input type="number" class="form-control" name="precio" value="<?= htmlspecialchars($vehiculo['precio'] ?? '') ?>" step="0.01" min="0" required>
                                 </div>
                             </div>
@@ -471,14 +572,14 @@ ob_start();
             </div>
         </div>
         
-        <div class="d-flex gap-2 justify-content-end mt-4">
+        <div class="d-flex gap-2 justify-content-end mt-4 flex-wrap">
             <a href="vehiculos.php" class="btn btn-outline-secondary">
                 <i class="bi bi-x-lg me-2"></i> Cancelar
             </a>
-            <button type="submit" name="redirect" value="list" class="btn btn-outline-primary">
+            <button type="submit" name="redirect" value="list" class="btn btn-outline-primary-admin">
                 <i class="bi bi-check-lg me-2"></i> Guardar y Volver
             </button>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary-admin">
                 <i class="bi bi-save me-2"></i> Guardar
             </button>
         </div>
@@ -486,81 +587,5 @@ ob_start();
 <?php
 $admin_content = ob_get_clean();
 $page_title = ($id ? 'Editar' : 'Nuevo') . ' Vehículo';
-include '../includes/head.php';
+include '../includes/admin_layout.php';
 ?>
-    <style>
-        body {
-            background-color: #f8fafc;
-        }
-        
-        .admin-sidebar {
-            min-height: 100vh;
-            background-color: #0f172a;
-            padding: 1.5rem 0;
-        }
-        
-        .admin-sidebar .nav-link {
-            color: #94a3b8;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0;
-            transition: all 0.2s;
-        }
-        
-        .admin-sidebar .nav-link:hover,
-        .admin-sidebar .nav-link.active {
-            background-color: #1e293b;
-            color: #fff;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-md-2 admin-sidebar">
-                <div class="px-3 mb-4">
-                    <a href="index.php" class="d-flex align-items-center text-white text-decoration-none">
-                        <i class="bi bi-car-front fs-3 me-2"></i>
-                        <span class="fs-5 fw-bold">Autolote</span>
-                    </a>
-                    <small class="text-muted d-block mt-1">Panel Administrativo</small>
-                </div>
-                
-                <nav class="nav flex-column">
-                    <a href="index.php" class="nav-link">
-                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                    </a>
-                    <a href="vehiculos.php" class="nav-link active">
-                        <i class="bi bi-car-front me-2"></i> Vehículos
-                    </a>
-                    <a href="usuarios.php" class="nav-link">
-                        <i class="bi bi-people me-2"></i> Usuarios
-                    </a>
-                    <a href="consultas.php" class="nav-link position-relative">
-                        <i class="bi bi-envelope me-2"></i> Consultas
-                        <?php if ($consultas_nuevas > 0): ?>
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" style="font-size: 0.65rem;">
-                                <?= $consultas_nuevas ?>
-                            </span>
-                        <?php endif; ?>
-                    </a>
-                    <hr class="text-muted my-2">
-                    <a href="../index.php" class="nav-link">
-                        <i class="bi bi-house me-2"></i> Ver Sitio
-                    </a>
-                    <a href="../logout.php" class="nav-link text-danger">
-                        <i class="bi bi-box-arrow-right me-2"></i> Salir
-                    </a>
-                </nav>
-            </div>
-
-            <!-- Contenido Principal -->
-            <div class="col-md-10">
-                <div class="p-4">
-                    <?= $admin_content ?>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="<?= BASE_URL ?>/assets/js/admin-mobile.js"></script>
-<?php include '../includes/footer.php'; ?>

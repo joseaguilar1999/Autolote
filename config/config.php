@@ -45,7 +45,7 @@ function requireAdmin() {
 }
 
 function formatPrice($price) {
-    return '$' . number_format($price, 2);
+    return 'Lps. ' . number_format($price, 2);
 }
 
 function formatKilometraje($km) {
