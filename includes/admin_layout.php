@@ -32,12 +32,24 @@ $nav_items = [
     <?php 
     // Asegurar que BASE_URL esté definido
     if (!defined('BASE_URL')) {
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https' : 'http';
+        // Render y otros servicios usan headers especiales para HTTPS detrás de proxy
+        $protocol = 'http';
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            $protocol = 'https';
+        } elseif ($_SERVER['SERVER_PORT'] == 443) {
+            $protocol = 'https';
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            $protocol = 'https';
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') {
+            $protocol = 'https';
+        }
+        
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false) {
             define('BASE_URL', $protocol . '://' . $host . '/Autolote');
         } else {
-            define('BASE_URL', $protocol . '://' . $host);
+            // Producción - siempre HTTPS
+            define('BASE_URL', 'https://' . $host);
         }
     }
     ?>

@@ -4,7 +4,19 @@ session_start();
 
 // Configuración de rutas
 // Detectar automáticamente la URL base (funciona en desarrollo y producción)
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https' : 'http';
+// Render y otros servicios usan headers especiales para HTTPS detrás de proxy
+$protocol = 'http';
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    $protocol = 'https';
+} elseif ($_SERVER['SERVER_PORT'] == 443) {
+    $protocol = 'https';
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+    // Render y otros servicios detrás de proxy
+    $protocol = 'https';
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') {
+    $protocol = 'https';
+}
+
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
 // Detectar si estamos en desarrollo local (localhost) o en producción
@@ -12,8 +24,8 @@ if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false
     // Desarrollo local
     $base_url = $protocol . '://' . $host . '/Autolote';
 } else {
-    // Producción (Render, etc.)
-    $base_url = $protocol . '://' . $host;
+    // Producción (Render, etc.) - siempre HTTPS
+    $base_url = 'https://' . $host;
 }
 
 define('BASE_URL', $base_url);
