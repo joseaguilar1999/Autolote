@@ -61,16 +61,6 @@ $page_title = 'Dashboard Administrativo';
 ob_start();
 ?>
 <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
         
         .page-header {
             background: white;

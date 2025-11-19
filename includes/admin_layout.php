@@ -29,8 +29,8 @@ $nav_items = [
     <title><?= isset($page_title) ? $page_title . ' - ' : '' ?>Panel Administrativo - Autolote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../assets/css/global.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/global.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/admin.css">
     <style>
         body {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
