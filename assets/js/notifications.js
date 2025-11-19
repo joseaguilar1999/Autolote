@@ -103,20 +103,34 @@ style.textContent = `
 
     .toast {
         background: white;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        padding: 1rem 1.25rem;
+        border-radius: 0.875rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 1.125rem 1.5rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        min-width: 300px;
-        max-width: 400px;
+        min-width: 320px;
+        max-width: 420px;
         opacity: 0;
-        transform: translateX(400px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(450px);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         pointer-events: auto;
         border-left: 4px solid;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .toast::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, currentColor, transparent);
+        opacity: 0.3;
     }
 
     .toast.show {

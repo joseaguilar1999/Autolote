@@ -197,11 +197,11 @@ ob_start();
 <?php if (isset($_GET['success'])): ?>
     <div class="alert-admin alert-success-admin">
         <?php if ($_GET['success'] === 'eliminado'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Vehículo eliminado exitosamente</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>El vehículo ha sido eliminado correctamente del sistema.</span>
         <?php elseif ($_GET['success'] === 'guardado'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Vehículo guardado exitosamente</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Los datos del vehículo han sido guardados exitosamente.</span>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -209,11 +209,11 @@ ob_start();
 <?php if (isset($_GET['error'])): ?>
     <div class="alert-admin alert-danger-admin">
         <?php if ($_GET['error'] === 'no_encontrado'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Vehículo no encontrado</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>No se pudo encontrar el vehículo solicitado. Por favor, verifica la información e intenta nuevamente.</span>
         <?php else: ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Error al procesar la solicitud</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Ha ocurrido un error al procesar tu solicitud. Por favor, intenta nuevamente o contacta al administrador del sistema.</span>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -290,7 +290,7 @@ ob_start();
                                         <a href="?eliminar=<?= $v['id'] ?>" 
                                            class="btn-action delete" 
                                            title="Eliminar"
-                                           onclick="return confirm('¿Estás seguro de eliminar este vehículo?');">
+                                           onclick="event.preventDefault(); confirmAction('Esta acción eliminará permanentemente el vehículo y todas sus imágenes asociadas. ¿Deseas continuar?', 'Eliminar Vehículo', 'danger').then(result => { if(result) window.location.href = this.href; }); return false;">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </div>

@@ -412,7 +412,7 @@ ob_start();
 
 <?php if ($error): ?>
     <div class="alert-admin alert-danger-admin">
-        <i class="bi bi-exclamation-triangle"></i>
+        <i class="bi bi-exclamation-triangle-fill"></i>
         <span><?= htmlspecialchars($error) ?></span>
     </div>
 <?php endif; ?>
@@ -420,14 +420,14 @@ ob_start();
 <?php if (isset($_GET['success'])): ?>
     <div class="alert-admin alert-success-admin">
         <?php if ($_GET['success'] === 'guardado'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Vehículo guardado exitosamente.</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Los datos del vehículo han sido guardados exitosamente en el sistema.</span>
         <?php elseif ($_GET['success'] === 'imagen_eliminada'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Imagen eliminada exitosamente.</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>La imagen ha sido eliminada correctamente del vehículo.</span>
         <?php elseif ($_GET['success'] === 'imagen_principal'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Imagen marcada como principal.</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>La imagen ha sido establecida como imagen principal y se mostrará en el catálogo.</span>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -541,14 +541,14 @@ ob_start();
                                                         <a href="?marcar_principal=<?= $img['id'] ?>&id=<?= $id ?>" 
                                                            class="btn-image-action primary" 
                                                            title="Marcar como principal"
-                                                           onclick="return confirm('¿Marcar esta imagen como principal?');">
+                                                           onclick="event.preventDefault(); confirmAction('Esta imagen será establecida como la imagen principal del vehículo y se mostrará en el catálogo. ¿Deseas continuar?', 'Marcar como Principal', 'info').then(result => { if(result) window.location.href = this.href; }); return false;">
                                                             <i class="bi bi-star"></i>
                                                         </a>
                                                     <?php endif; ?>
                                                     <a href="?eliminar_imagen=<?= $img['id'] ?>&id=<?= $id ?>" 
                                                        class="btn-image-action delete" 
                                                        title="Eliminar imagen"
-                                                       onclick="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                                                       onclick="event.preventDefault(); confirmAction('Esta acción eliminará permanentemente la imagen del vehículo. ¿Deseas continuar?', 'Eliminar Imagen', 'danger').then(result => { if(result) window.location.href = this.href; }); return false;">
                                                         <i class="bi bi-trash"></i>
                                                     </a>
                                                 </div>

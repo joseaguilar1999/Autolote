@@ -262,43 +262,104 @@ body {
 
 /* Alerts */
 .alert-admin {
-    border-radius: 0.75rem;
+    border-radius: 0.875rem;
     border: none;
-    padding: 1rem 1.25rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 1.125rem 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
     font-weight: 500;
     margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+}
+
+.alert-admin::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: currentColor;
+    opacity: 0.8;
+}
+
+.alert-admin i {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+.alert-admin span {
+    flex: 1;
+    font-size: 0.9375rem;
+    line-height: 1.5;
 }
 
 .alert-success-admin {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    background: linear-gradient(135deg, rgba(209, 250, 229, 0.95) 0%, rgba(167, 243, 208, 0.95) 100%);
     color: #065f46;
     border-left: 4px solid #10b981;
 }
 
+.alert-success-admin i {
+    color: #10b981;
+}
+
 .alert-danger-admin {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background: linear-gradient(135deg, rgba(254, 226, 226, 0.95) 0%, rgba(254, 202, 202, 0.95) 100%);
     color: #991b1b;
     border-left: 4px solid #ef4444;
 }
 
+.alert-danger-admin i {
+    color: #ef4444;
+}
+
 .alert-warning-admin {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    background: linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.95) 100%);
     color: #92400e;
     border-left: 4px solid #f59e0b;
 }
 
+.alert-warning-admin i {
+    color: #f59e0b;
+}
+
 .alert-info-admin {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.95) 0%, rgba(191, 219, 254, 0.95) 100%);
     color: #1e40af;
     border-left: 4px solid #3b82f6;
 }
 
-.alert-admin i {
-    font-size: 1.25rem;
+.alert-info-admin i {
+    color: #3b82f6;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Pagination */

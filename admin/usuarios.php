@@ -273,14 +273,14 @@ ob_start();
 <?php if (isset($_GET['success'])): ?>
     <div class="alert-admin alert-success-admin">
         <?php if ($_GET['success'] === 'eliminado'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Usuario eliminado exitosamente</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>La cuenta de usuario ha sido eliminada correctamente del sistema.</span>
         <?php elseif ($_GET['success'] === 'creado'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Usuario creado exitosamente</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>El nuevo usuario ha sido registrado exitosamente y ya puede acceder al sistema.</span>
         <?php elseif ($_GET['success'] === 'actualizado'): ?>
-            <i class="bi bi-check-circle"></i>
-            <span>Usuario actualizado exitosamente</span>
+            <i class="bi bi-check-circle-fill"></i>
+            <span>La información del usuario ha sido actualizada correctamente.</span>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -288,29 +288,29 @@ ob_start();
 <?php if (isset($_GET['error'])): ?>
     <div class="alert-admin alert-danger-admin">
         <?php if ($_GET['error'] === 'no_auto_eliminar'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>No puedes eliminar tu propia cuenta</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Por razones de seguridad, no puedes eliminar tu propia cuenta. Contacta a otro administrador si necesitas realizar esta acción.</span>
         <?php elseif ($_GET['error'] === 'no_eliminar_admin'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>No se pueden eliminar otros administradores</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>No se pueden eliminar cuentas de administrador. Solo el administrador más antiguo puede gestionar roles de otros administradores.</span>
         <?php elseif ($_GET['error'] === 'no_encontrado'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Usuario no encontrado</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>No se pudo encontrar el usuario solicitado. Por favor, verifica la información e intenta nuevamente.</span>
         <?php elseif ($_GET['error'] === 'campos_requeridos'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Por favor completa todos los campos requeridos</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Por favor, completa todos los campos obligatorios marcados con asterisco (*) antes de continuar.</span>
         <?php elseif ($_GET['error'] === 'email_invalido'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>El email ingresado no es válido</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>El formato del correo electrónico ingresado no es válido. Por favor, verifica e intenta nuevamente.</span>
         <?php elseif ($_GET['error'] === 'email_existe'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Este email ya está registrado</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>El correo electrónico ingresado ya está registrado en el sistema. Por favor, utiliza una dirección de correo diferente.</span>
         <?php elseif ($_GET['error'] === 'password_corta'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>La contraseña debe tener al menos 6 caracteres</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>La contraseña debe contener al menos 6 caracteres para garantizar la seguridad de la cuenta.</span>
         <?php elseif ($_GET['error'] === 'no_cambiar_rol_admin'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>No se puede cambiar el rol de un administrador</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>No tienes permisos para modificar el rol de otro administrador. Solo el administrador más antiguo puede realizar esta acción.</span>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -390,7 +390,7 @@ ob_start();
                                             <a href="?eliminar=<?= $u['id'] ?>" 
                                                class="btn-action delete" 
                                                title="Eliminar"
-                                               onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
+                                               onclick="event.preventDefault(); confirmAction('Esta acción eliminará permanentemente la cuenta del usuario. Esta operación no se puede deshacer. ¿Deseas continuar?', 'Eliminar Usuario', 'danger').then(result => { if(result) window.location.href = this.href; }); return false;">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         <?php else: ?>

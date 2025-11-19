@@ -153,19 +153,19 @@ ob_start();
 
 <?php if (isset($_GET['success'])): ?>
     <div class="alert-admin alert-success-admin">
-        <i class="bi bi-check-circle"></i>
-        <span>Estado actualizado exitosamente</span>
+        <i class="bi bi-check-circle-fill"></i>
+        <span>El estado de la consulta ha sido actualizado correctamente.</span>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_GET['error'])): ?>
     <div class="alert-admin alert-danger-admin">
         <?php if ($_GET['error'] === 'no_encontrado'): ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Consulta no encontrada</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>No se pudo encontrar la consulta solicitada. Por favor, verifica la información e intenta nuevamente.</span>
         <?php else: ?>
-            <i class="bi bi-exclamation-triangle"></i>
-            <span>Error al procesar la solicitud</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Ha ocurrido un error al procesar tu solicitud. Por favor, intenta nuevamente o contacta al administrador del sistema.</span>
         <?php endif; ?>
     </div>
 <?php endif; ?>
